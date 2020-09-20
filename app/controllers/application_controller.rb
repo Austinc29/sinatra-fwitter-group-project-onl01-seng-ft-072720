@@ -35,12 +35,12 @@ class ApplicationController < Sinatra::Base
     user = User.create(:username => params["username"], :email => params["email"], :password => params["password"])
     session[:user_id] = user.id
 
-    redirect to '/tweets'
+    redirect to '/ideas'
   end
 
   get '/login' do
     if Helpers.is_logged_in?(session)
-      redirect to '/tweets'
+      redirect to '/ideas'
     end
 
     erb :"/users/login"
@@ -51,83 +51,83 @@ class ApplicationController < Sinatra::Base
 
     if user && user.authenticate(params[:password])
       session[:user_id] = user.id
-      redirect to '/tweets'
+      redirect to '/ideas'
     else
       flash[:login_error] = "Incorrect login. Please try again."
       redirect to '/login'
     end
   end
 
-  get '/tweets' do
+  get '/ideas' do
     if !Helpers.is_logged_in?(session)
       redirect to '/login'
     end
-    @tweets = Tweet.all
+    @ideas = Tweet.all
     @user = Helpers.current_user(session)
-    erb :"/tweets/tweets"
+    erb :"/ideas/ideas"
   end
 
-  get '/tweets/new' do
+  get '/ideas/new' do
     if !Helpers.is_logged_in?(session)
       redirect to '/login'
     end
-    erb :"/tweets/create_tweet"
+    erb :"/ideas/create_tweet"
   end
 
-  post '/tweets' do
+  post '/ideas' do
     user = Helpers.current_user(session)
     if params["content"].empty?
       flash[:empty_tweet] = "Please enter content for your tweet"
-      redirect to '/tweets/new'
+      redirect to '/ideas/new'
     end
     tweet = Tweet.create(:content => params["content"], :user_id => user.id)
 
-    redirect to '/tweets'
+    redirect to '/ideas'
   end
 
-  get '/tweets/:id' do
+  get '/ideas/:id' do
     if !Helpers.is_logged_in?(session)
       redirect to '/login'
     end
     @tweet = Tweet.find(params[:id])
-    erb :"tweets/show_tweet"
+    erb :"ideas/show_tweet"
   end
 
-  get '/tweets/:id/edit' do
+  get '/ideas/:id/edit' do
     if !Helpers.is_logged_in?(session)
       redirect to '/login'
     end
     @tweet = Tweet.find(params[:id])
     if Helpers.current_user(session).id != @tweet.user_id
       flash[:wrong_user_edit] = "Sorry you can only edit your own tweets"
-      redirect to '/tweets'
+      redirect to '/ideas'
     end
-    erb :"tweets/edit_tweet"
+    erb :"ideas/edit_tweet"
   end
 
-  patch '/tweets/:id' do
+  patch '/ideas/:id' do
     tweet = Tweet.find(params[:id])
     if params["content"].empty?
       flash[:empty_tweet] = "Please enter content for your tweet"
-      redirect to "/tweets/#{params[:id]}/edit"
+      redirect to "/ideas/#{params[:id]}/edit"
     end
     tweet.update(:content => params["content"])
     tweet.save
 
-    redirect to "/tweets/#{tweet.id}"
+    redirect to "/ideas/#{tweet.id}"
   end
 
-  post '/tweets/:id/delete' do
+  post '/ideas/:id/delete' do
     if !Helpers.is_logged_in?(session)
       redirect to '/login'
     end
     @tweet = Tweet.find(params[:id])
     if Helpers.current_user(session).id != @tweet.user_id
-      flash[:wrong_user] = "Sorry you can only delete your own tweets"
-      redirect to '/tweets'
+      flash[:wrong_user] = "Sorry you can only delete your own ideas"
+      redirect to '/ideas'
     end
     @tweet.delete
-    redirect to '/tweets'
+    redirect to '/ideas'
   end
 
   get '/users/:slug' do
